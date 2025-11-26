@@ -1,0 +1,22 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: Backup
+metadata:
+  name: scheduled-backup
+  namespace: kafka
+spec:
+  source: my-kafka-cluster
+  sink: s3-backup-storage
+  
+  # Run backup every 6 hours
+  schedule: "0 */6 * * *"
+  
+  topicSelectors:
+    matchers:
+      - glob: "*"
+  
+  workGroup:
+    workers: 5
+  
+  compression: true
+  batchSize: 10000
+  flushInterval: "120s"

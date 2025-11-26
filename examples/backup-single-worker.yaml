@@ -1,0 +1,16 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: Backup
+metadata:
+  name: single-topic-backup
+  namespace: kafka
+spec:
+  source: my-kafka-cluster
+  sink: s3-backup-storage
+  
+  topicSelectors:
+    matchers:
+      - name: "critical-events"
+  
+  compression: true
+  batchSize: 1000
+  flushInterval: "30s"

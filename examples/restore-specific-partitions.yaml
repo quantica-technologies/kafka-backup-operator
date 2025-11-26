@@ -1,0 +1,16 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: Restore
+metadata:
+  name: restore-partitions
+  namespace: kafka
+spec:
+  source: s3-backup-storage
+  target: my-kafka-cluster
+  
+  # Restore only specific partitions
+  partitionFilter:
+    orders.completed: [0, 1, 2]
+    payments.processed: [0]
+  
+  workers: 2
+  createTopics: true

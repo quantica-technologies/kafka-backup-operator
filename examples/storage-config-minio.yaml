@@ -1,0 +1,16 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: StorageConfig
+metadata:
+  name: minio-backup-storage
+  namespace: kafka
+spec:
+  type: s3
+  path: kafka-backups
+  region: us-east-1
+  prefix: backups
+  s3:
+    endpoint: "http://minio.storage.svc.cluster.local:9000"
+    usePathStyle: true
+    secretRef:
+      name: minio-credentials
+      namespace: kafka

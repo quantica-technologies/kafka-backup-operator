@@ -1,0 +1,15 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: StorageConfig
+metadata:
+  name: s3-backup-storage
+  namespace: kafka
+spec:
+  type: s3
+  path: my-kafka-backups
+  region: us-east-1
+  prefix: production/kafka
+  s3:
+    endpoint: ""  # Leave empty for AWS S3
+    secretRef:
+      name: s3-credentials
+      namespace: kafka

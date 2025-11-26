@@ -1,0 +1,22 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: KafkaCluster
+metadata:
+  name: my-kafka-cluster
+  namespace: kafka
+spec:
+  bootstrapServers: "kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092"
+  securityProtocol: "SASL_SSL"
+  sasl:
+    mechanism: "SCRAM-SHA-512"
+    secretRef:
+      name: kafka-credentials
+      namespace: kafka
+  tls:
+    enabled: true
+    insecureSkipVerify: false
+    caSecretRef:
+      name: kafka-ca-cert
+      namespace: kafka
+  properties:
+    session.timeout.ms: "30000"
+    max.poll.records: "500"

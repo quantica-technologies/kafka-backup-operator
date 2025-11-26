@@ -1,0 +1,22 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: Restore
+metadata:
+  name: restore-with-rename
+  namespace: kafka
+spec:
+  source: s3-backup-storage
+  target: my-kafka-cluster
+  
+  # Rename topics during restore
+  topicMapping:
+    orders.completed: orders.completed-restored
+    payments.processed: payments.processed-restored
+  
+  topicSelectors:
+    matchers:
+      - glob: "orders.*"
+      - glob: "payments.*"
+  
+  workers: 2
+  createTopics: true
+  overwriteExisting: false

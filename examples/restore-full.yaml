@@ -1,0 +1,21 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: Restore
+metadata:
+  name: full-restore
+  namespace: kafka
+spec:
+  source: s3-backup-storage
+  target: my-kafka-cluster
+  
+  # Restore all topics from backup
+  workers: 5
+  createTopics: true
+  overwriteExisting: false
+  
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "2Gi"
+    limits:
+      cpu: "4000m"
+      memory: "8Gi"

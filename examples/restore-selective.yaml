@@ -1,0 +1,18 @@
+apiVersion: backup.kafka.io/v1alpha1
+kind: Restore
+metadata:
+  name: selective-restore
+  namespace: kafka
+spec:
+  source: s3-backup-storage
+  target: my-kafka-cluster
+  
+  # Restore only specific topics
+  topicSelectors:
+    matchers:
+      - glob: "orders.completed"
+      - glob: "payments.processed"
+  
+  workers: 3
+  createTopics: true
+  overwriteExisting: false
