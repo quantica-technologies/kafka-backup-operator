@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/quantica-technologies/kafka-backup/internal/domain"
-	"github.com/quantica-technologies/kafka-backup/internal/repository"
-	"github.com/quantica-technologies/kafka-backup/pkg/logger"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/domain"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/repository"
+	"github.com/quantica-technologies/kafka-backup-operator/pkg/logger"
 )
 
 // Worker handles backup operations for assigned topics

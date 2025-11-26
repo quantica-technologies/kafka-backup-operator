@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/quantica-technologies/kafka-backup/internal/domain"
-	"github.com/quantica-technologies/kafka-backup/internal/repository"
-	"github.com/quantica-technologies/kafka-backup/internal/usecase"
-	"github.com/quantica-technologies/kafka-backup/pkg/logger"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/domain"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/repository"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/usecase"
+	"github.com/quantica-technologies/kafka-backup-operator/pkg/logger"
 )
 
 // Service implements the restore use case

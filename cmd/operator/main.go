@@ -12,8 +12,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	backupv1alpha1 "github.com/yourusername/kafka-backup/api/v1alpha1"
-	"github.com/yourusername/kafka-backup/controllers"
+	backupv1alpha1 "github.com/quantica-technologies/kafka-backup-operator/api/v1alpha1"
+	"github.com/quantica-technologies/kafka-backup-operator/controllers"
 )
 
 var (

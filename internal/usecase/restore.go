@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/quantica-technologies/kafka-backup/internal/domain"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/domain"
 )
 
 // RestoreUseCase defines the interface for restore operations

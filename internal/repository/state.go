@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/quantica-technologies/kafka-backup/internal/domain"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/domain"
 )
 
 // StateRepository defines operations for managing backup/restore state

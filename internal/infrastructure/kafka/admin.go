@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
-	"github.com/quantica-technologies/kafka-backup/internal/domain"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/domain"
 )
 
 // Admin wraps Sarama cluster admin

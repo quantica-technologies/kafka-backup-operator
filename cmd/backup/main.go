@@ -8,11 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/quantica-technologies/kafka-backup/internal/app/backup"
-	"github.com/quantica-technologies/kafka-backup/internal/config"
-	"github.com/quantica-technologies/kafka-backup/internal/infrastructure/kafka"
-	"github.com/quantica-technologies/kafka-backup/internal/infrastructure/storage"
-	"github.com/quantica-technologies/kafka-backup/pkg/logger"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/app/backup"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/config"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/infrastructure/kafka"
+	"github.com/quantica-technologies/kafka-backup-operator/internal/infrastructure/storage"
+	"github.com/quantica-technologies/kafka-backup-operator/pkg/logger"
 )
 
 const version = "1.0.0"
