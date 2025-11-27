@@ -1,30 +1,34 @@
-# Build the manager binary
-FROM golang:1.23 as builder
+FROM golang:1.24-alpine AS builder
+
+RUN apk add --no-cache git make ca-certificates tzdata
 
 WORKDIR /workspace
 
-# Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+# Copy go.mod and go.sum first for better caching
+COPY go.mod go.sum ./
 
-# cache deps before building and copying source so that we don't need to re-download as much
-# and so that source changes don't invalidate our downloaded layer
+# Verify go.mod
+RUN go mod verify || true
+
+# Download dependencies
 RUN go mod download
 
-# Copy the go source
-COPY main.go main.go
-COPY api/ api/
-COPY controllers/ controllers/
-COPY pkg/ pkg/
+# Copy source code
+COPY . .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH:-amd64} \
+    go build -a -installsuffix cgo -ldflags="-w -s" \
+    -o manager ./cmd/operator
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
+
 WORKDIR /
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /workspace/manager .
+
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
