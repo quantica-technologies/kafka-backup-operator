@@ -1,0 +1,221 @@
+replicaCount: 1
+
+image:
+  repository: kafka-backup-operator
+  pullPolicy: IfNotPresent
+  tag: ""  # Defaults to chart appVersion
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  fsGroup: 65532
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Autoscaling configuration (experimental)
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity: {}
+
+# Priority class
+priorityClassName: ""
+
+# Operator configuration
+operator:
+  # Metrics server configuration
+  metricsAddr: ":8080"
+  # Health probe configuration
+  healthProbeAddr: ":8081"
+  # Enable leader election
+  leaderElection: true
+  # Log level: debug, info, warn, error
+  logLevel: info
+  # Log format: json, console
+  logFormat: json
+  # Sync period for reconciliation
+  syncPeriod: "10m"
+
+# Webhook configuration (optional)
+webhook:
+  enabled: false
+  port: 9443
+  certManager:
+    enabled: true
+
+# Metrics and monitoring
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    annotations: {}
+
+# Worker image configuration
+worker:
+  image:
+    repository: kafka-backup-worker
+    pullPolicy: IfNotPresent
+    tag: ""
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Default storage configurations
+# These can be overridden per Backup/Restore CR
+storage:
+  # S3 configuration
+  s3:
+    enabled: false
+    region: us-east-1
+    endpoint: ""
+    # Credentials from secret
+    credentialsSecret: ""
+    credentialsSecretKeys:
+      accessKeyId: access_key_id
+      secretAccessKey: secret_access_key
+  
+  # Azure configuration
+  azure:
+    enabled: false
+    # Credentials from secret
+    credentialsSecret: ""
+    credentialsSecretKeys:
+      accountName: account_name
+      accountKey: account_key
+  
+  # GCS configuration
+  gcs:
+    enabled: false
+    projectId: ""
+    # Credentials from secret
+    credentialsSecret: ""
+    credentialsSecretKey: credentials.json
+
+# CRD installation
+crds:
+  # Whether to install CRDs
+  install: true
+  # Whether to keep CRDs on uninstall
+  keep: true
+
+# Network policy
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress:
+    # Allow DNS
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+      ports:
+      - protocol: UDP
+        port: 53
+    # Allow Kubernetes API
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443
+    # Allow Kafka (customize based on your setup)
+    - to:
+      - podSelector: {}
+      ports:
+      - protocol: TCP
+        port: 9092
+      - protocol: TCP
+        port: 9093
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Additional volumes
+extraVolumes: []
+# - name: extra-config
+#   configMap:
+#     name: extra-config
+
+# Additional volume mounts
+extraVolumeMounts: []
+# - name: extra-config
+#   mountPath: /etc/extra-config
+#   readOnly: true
+
+# Additional environment variables
+extraEnv: []
+# - name: CUSTOM_VAR
+#   value: "custom-value"
+
+# Additional environment variables from secrets/configmaps
+extraEnvFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
+
+# Additional labels for all resources
+commonLabels: {}
+
+# Additional annotations for all resources
+commonAnnotations: {}

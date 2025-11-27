@@ -1,0 +1,144 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: kafkaclusters.backup.kafka.io
+spec:
+  group: backup.kafka.io
+  names:
+    kind: KafkaCluster
+    listKind: KafkaClusterList
+    plural: kafkaclusters
+    shortNames:
+    - kc
+    singular: kafkacluster
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: KafkaCluster defines a Kafka cluster configuration
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: KafkaClusterSpec defines the Kafka cluster connection details
+            properties:
+              bootstrapServers:
+                description: BootstrapServers is the Kafka bootstrap servers
+                type: string
+              properties:
+                additionalProperties:
+                  type: string
+                description: Properties for additional Kafka configuration
+                type: object
+              sasl:
+                description: SASL configuration
+                properties:
+                  mechanism:
+                    description: Mechanism is the SASL mechanism
+                    enum:
+                    - PLAIN
+                    - SCRAM-SHA-256
+                    - SCRAM-SHA-512
+                    type: string
+                  password:
+                    description: Password for SASL authentication
+                    type: string
+                  secretRef:
+                    description: SecretRef references a secret containing credentials
+                    properties:
+                      key:
+                        description: Key in the secret
+                        type: string
+                      name:
+                        description: Name of the secret
+                        type: string
+                      namespace:
+                        description: Namespace of the secret
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  username:
+                    description: Username for SASL authentication
+                    type: string
+                required:
+                - mechanism
+                type: object
+              securityProtocol:
+                default: PLAINTEXT
+                description: SecurityProtocol defines the security protocol
+                enum:
+                - PLAINTEXT
+                - SASL_PLAINTEXT
+                - SASL_SSL
+                - SSL
+                type: string
+              tls:
+                description: TLS configuration
+                properties:
+                  caSecretRef:
+                    description: CASecretRef references a secret containing the CA
+                      certificate
+                    properties:
+                      key:
+                        description: Key in the secret
+                        type: string
+                      name:
+                        description: Name of the secret
+                        type: string
+                      namespace:
+                        description: Namespace of the secret
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  certSecretRef:
+                    description: CertSecretRef references a secret containing client
+                      certificate
+                    properties:
+                      key:
+                        description: Key in the secret
+                        type: string
+                      name:
+                        description: Name of the secret
+                        type: string
+                      namespace:
+                        description: Namespace of the secret
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  enabled:
+                    description: Enabled specifies whether TLS is enabled
+                    type: boolean
+                  insecureSkipVerify:
+                    description: InsecureSkipVerify skips certificate verification
+                    type: boolean
+                required:
+                - enabled
+                type: object
+            required:
+            - bootstrapServers
+            type: object
+        type: object
+    served: true
+    storage: true

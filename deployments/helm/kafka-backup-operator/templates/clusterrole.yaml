@@ -1,0 +1,172 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kafka-backup-operator.clusterRoleName" . }}
+  labels:
+    {{- include "kafka-backup-operator.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+# Permissions for Backup CRD
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - backups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - backups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - backups/finalizers
+  verbs:
+  - update
+
+# Permissions for Restore CRD
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - restores
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - restores/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - restores/finalizers
+  verbs:
+  - update
+
+# Permissions for KafkaCluster CRD
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - kafkaclusters
+  verbs:
+  - get
+  - list
+  - watch
+
+# Permissions for StorageConfig CRD
+- apiGroups:
+  - backup.kafka.io
+  resources:
+  - storageconfigs
+  verbs:
+  - get
+  - list
+  - watch
+
+# Permissions for Jobs
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+
+# Permissions for CronJobs
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+
+# Permissions for ConfigMaps
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+
+# Permissions for Secrets
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+
+# Permissions for Pods (for status checking)
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+
+# Permissions for Events
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+
+# Leader election permissions
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+{{- end }}

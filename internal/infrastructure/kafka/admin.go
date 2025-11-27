@@ -15,17 +15,33 @@ type Admin struct {
 }
 
 func (a *Admin) ListTopics(ctx context.Context) ([]*domain.Topic, error) {
-	metadata, err := a.admin.ListTopics()
+	topicNames, err := a.client.Topics()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list topics: %w", err)
 	}
 
-	topics := make([]*domain.Topic, 0, len(metadata))
-	for name, detail := range metadata {
+	topics := make([]*domain.Topic, 0, len(topicNames))
+	for _, name := range topicNames {
+		// Get topic metadata
+		partitions, err := a.client.Partitions(name)
+		if err != nil {
+			continue // Skip topics we can't access
+		}
+
+		if len(partitions) == 0 {
+			continue
+		}
+
+		// Get replication factor from first partition
+		replicas, err := a.client.Replicas(name, partitions[0])
+		if err != nil {
+			continue
+		}
+
 		topics = append(topics, &domain.Topic{
 			Name:              name,
-			Partitions:        int32(len(detail.Partitions)),
-			ReplicationFactor: int16(len(detail.Partitions[0].Replicas)),
+			Partitions:        int32(len(partitions)),
+			ReplicationFactor: int16(len(replicas)),
 		})
 	}
 
@@ -33,63 +49,127 @@ func (a *Admin) ListTopics(ctx context.Context) ([]*domain.Topic, error) {
 }
 
 func (a *Admin) DescribeTopic(ctx context.Context, name string) (*domain.Topic, error) {
-	metadata, err := a.admin.DescribeTopics([]string{name})
+	// Get partitions for the topic
+	partitions, err := a.client.Partitions(name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get partitions: %w", err)
 	}
 
-	if len(metadata) == 0 {
-		return nil, fmt.Errorf("topic not found: %s", name)
+	if len(partitions) == 0 {
+		return nil, fmt.Errorf("topic has no partitions: %s", name)
 	}
 
-	detail := metadata[0]
+	// Get replication factor from first partition
+	replicas, err := a.client.Replicas(name, partitions[0])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get replicas: %w", err)
+	}
+
+	// Get topic configuration
+	configResource := sarama.ConfigResource{
+		Type: sarama.TopicResource,
+		Name: name,
+	}
+
+	configs, err := a.admin.DescribeConfig(configResource)
+	if err != nil {
+		// Continue without config if describe fails
+		return &domain.Topic{
+			Name:              name,
+			Partitions:        int32(len(partitions)),
+			ReplicationFactor: int16(len(replicas)),
+			Config:            make(map[string]string),
+		}, nil
+	}
+
+	// Convert config entries to map
+	configMap := make(map[string]string)
+	for _, entry := range configs {
+		configMap[entry.Name] = entry.Value
+	}
+
 	return &domain.Topic{
-		Name:              detail.Name,
-		Partitions:        int32(len(detail.Partitions)),
-		ReplicationFactor: int16(len(detail.Partitions[0].Replicas)),
+		Name:              name,
+		Partitions:        int32(len(partitions)),
+		ReplicationFactor: int16(len(replicas)),
+		Config:            configMap,
 	}, nil
 }
 
 func (a *Admin) CreateTopic(ctx context.Context, topic *domain.Topic) error {
+	// Convert config map to Sarama format
+	configEntries := make(map[string]*string)
+	for k, v := range topic.Config {
+		val := v // Create a copy to get pointer
+		configEntries[k] = &val
+	}
+
 	topicDetail := &sarama.TopicDetail{
 		NumPartitions:     topic.Partitions,
 		ReplicationFactor: topic.ReplicationFactor,
-		ConfigEntries:     topic.Config,
+		ConfigEntries:     configEntries,
 	}
 
-	return a.admin.CreateTopic(topic.Name, topicDetail, false)
+	err := a.admin.CreateTopic(topic.Name, topicDetail, false)
+	if err != nil {
+		// Check if error is because topic already exists
+		if topicErr, ok := err.(*sarama.TopicError); ok {
+			if topicErr.Err == sarama.ErrTopicAlreadyExists {
+				return fmt.Errorf("topic already exists: %s", topic.Name)
+			}
+		}
+		return fmt.Errorf("failed to create topic: %w", err)
+	}
+
+	return nil
 }
 
 func (a *Admin) DeleteTopic(ctx context.Context, name string) error {
-	return a.admin.DeleteTopic(name)
+	err := a.admin.DeleteTopic(name)
+	if err != nil {
+		return fmt.Errorf("failed to delete topic: %w", err)
+	}
+	return nil
 }
 
 func (a *Admin) GetPartitions(ctx context.Context, topic string) ([]int32, error) {
-	return a.client.Partitions(topic)
+	partitions, err := a.client.Partitions(topic)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get partitions: %w", err)
+	}
+	return partitions, nil
 }
 
 func (a *Admin) GetOffsets(ctx context.Context, topic string, partition int32) (low, high int64, err error) {
+	// Get oldest offset
 	low, err = a.client.GetOffset(topic, partition, sarama.OffsetOldest)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, fmt.Errorf("failed to get oldest offset: %w", err)
 	}
 
+	// Get newest offset
 	high, err = a.client.GetOffset(topic, partition, sarama.OffsetNewest)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, fmt.Errorf("failed to get newest offset: %w", err)
 	}
 
 	return low, high, nil
 }
 
 func (a *Admin) Close() error {
+	var adminErr, clientErr error
+
 	if a.admin != nil {
-		if err := a.admin.Close(); err != nil {
-			return err
-		}
+		adminErr = a.admin.Close()
 	}
+
 	if a.client != nil {
-		return a.client.Close()
+		clientErr = a.client.Close()
 	}
-	return nil
+
+	// Return first error encountered
+	if adminErr != nil {
+		return adminErr
+	}
+	return clientErr
 }
