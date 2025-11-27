@@ -47,12 +47,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - dockerfile: build/package/Dockerfile.operator
-            image: kafka-backup-operator
-          - dockerfile: build/package/Dockerfile.worker
-            image: kafka-backup-worker
           - dockerfile: build/package/Dockerfile
-            image: kafka-backup
+            image: kafka-backup-operator
 
     steps:
       - name: Checkout code
