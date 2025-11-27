@@ -1,0 +1,104 @@
+replicaCount: 2
+
+image:
+  repository: your-registry.io/kafka-backup-operator
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+imagePullSecrets:
+  - name: registry-credentials
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+operator:
+  metricsAddr: ":8080"
+  healthProbeAddr: ":8081"
+  leaderElection: true
+  logLevel: info
+  logFormat: json
+
+# Enable autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Enable metrics and monitoring
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      prometheus: kube-prometheus
+
+# Worker configuration
+worker:
+  image:
+    repository: your-registry.io/kafka-backup-worker
+    tag: "1.0.0"
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+# Storage configurations
+storage:
+  s3:
+    enabled: true
+    region: us-east-1
+    credentialsSecret: aws-credentials
+  
+  azure:
+    enabled: true
+    credentialsSecret: azure-credentials
+
+# Enable pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network policy
+networkPolicy:
+  enabled: true
+
+# Priority class for critical workloads
+priorityClassName: system-cluster-critical
+
+# Node affinity for production nodes
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-role.kubernetes.io/worker
+          operator: In
+          values:
+          - "true"
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: kafka-backup-operator
+        topologyKey: kubernetes.io/hostname
+
+# Tolerations for tainted nodes
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "kafka-backup"
+    effect: "NoSchedule"

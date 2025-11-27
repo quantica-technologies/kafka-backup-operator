@@ -1,0 +1,245 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # Linting and formatting
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: Run go vet
+        run: make vet
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code
+
+  # Unit tests
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Run tests
+        run: make test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./cover.out
+          flags: unittests
+          name: codecov-umbrella
+
+  # Build binaries
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build all binaries
+        run: make build-all
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: bin/*
+
+  # Generate and validate CRDs
+  crds:
+    name: CRDs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install controller-gen
+        run: |
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.14.0
+
+      - name: Generate manifests
+        run: make manifests
+
+      - name: Verify CRDs are up to date
+        run: |
+          git diff --exit-code config/crd/bases/
+          if [ $? -ne 0 ]; then
+            echo "CRDs are out of date. Please run 'make manifests' and commit the changes."
+            exit 1
+          fi
+
+      - name: Validate CRDs
+        run: |
+          kubectl apply --dry-run=client -f config/crd/bases/
+
+  # Validate Helm chart
+  helm:
+    name: Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install controller-gen
+        run: |
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.14.0
+
+      - name: Generate and copy CRDs
+        run: |
+          make manifests
+          make helm-crds
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Lint Helm chart
+        run: make helm-lint
+
+      - name: Template Helm chart
+        run: make helm-template
+
+      - name: Template with production values
+        run: make helm-template-prod
+
+  # Integration tests (optional)
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Set up Kind
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kind
+          wait: 120s
+
+      - name: Install CRDs
+        run: |
+          make manifests
+          kubectl apply -f config/crd/bases/
+
+      - name: Run integration tests
+        run: |
+          # Add your integration test commands here
+          echo "Running integration tests..."
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt sarif -out results.sarif ./...'
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+  # Dependency review (PRs only)
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+
+  # All checks passed
+  all-checks:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint, test, build, crds, helm]
+    steps:
+      - name: All checks passed
+        run: echo "All CI checks passed successfully!"

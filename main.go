@@ -11,6 +11,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	backupv1alpha1 "github.com/quantica-technologies/kafka-backup-operator/api/v1alpha1"
 	"github.com/quantica-technologies/kafka-backup-operator/controllers"
@@ -46,12 +47,13 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "kafka-backup-operator.kafka.io",
+		LeaderElectionID:       "kafka-backup-operator.backup.kafka.io",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -77,18 +79,6 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Restore")
 		os.Exit(1)
 	}
-
-	// Setup webhooks if enabled
-	// if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-	// 	if err = (&backupv1alpha1.Backup{}).SetupWebhookWithManager(mgr); err != nil {
-	// 		setupLog.Error(err, "unable to create webhook", "webhook", "Backup")
-	// 		os.Exit(1)
-	// 	}
-	// 	if err = (&backupv1alpha1.Restore{}).SetupWebhookWithManager(mgr); err != nil {
-	// 		setupLog.Error(err, "unable to create webhook", "webhook", "Restore")
-	// 		os.Exit(1)
-	// 	}
-	// }
 
 	// Add health checks
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

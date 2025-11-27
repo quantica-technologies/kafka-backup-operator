@@ -1,0 +1,20 @@
+apiVersion: v2
+name: kafka-backup-operator
+description: A Kubernetes operator for backing up and restoring Apache Kafka topics to object storage
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kafka
+  - backup
+  - restore
+  - operator
+  - storage
+home: https://github.com/quantica-technologies/kafka-backup-operator
+sources:
+  - https://github.com/quantica-technologies/kafka-backup-operator
+maintainers:
+  - name: Taffarel de Lima Oliveira
+    email: taffarelo3@gmail.com
+icon: https://kafka.apache.org/images/apache-kafka.png
+kubeVersion: ">=1.24.0-0"

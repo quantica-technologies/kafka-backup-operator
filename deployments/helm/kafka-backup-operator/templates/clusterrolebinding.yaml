@@ -1,0 +1,19 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kafka-backup-operator.clusterRoleBindingName" . }}
+  labels:
+    {{- include "kafka-backup-operator.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kafka-backup-operator.clusterRoleName" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "kafka-backup-operator.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}
