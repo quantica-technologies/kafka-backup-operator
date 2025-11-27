@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - dockerfile: build/package/Dockerfile
+          - dockerfile: Dockerfile
             image: kafka-backup-operator
 
     steps:
