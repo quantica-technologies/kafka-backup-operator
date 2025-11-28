@@ -262,7 +262,7 @@ jobs:
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
-          ref: gh-pages
+          ref: main
           path: gh-pages
 
       - name: Copy chart to gh-pages
