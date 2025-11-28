@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka Backup Operator - Helm Charts</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 3rem;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        .section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        h2 {
+            color: #764ba2;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Kafka Backup Operator</h1>
+        <p class="subtitle">Kubernetes Operator for Kafka Backup & Restore</p>
+        
+        <div class="section">
+            <h2>📦 Install Helm Chart</h2>
+            <p>Add this Helm repository:</p>
+            <pre><code>helm repo add kafka-backup-operator https://quantica-technologies.github.io/kafka-backup-operator
+helm repo update</code></pre>
+            
+            <p>Install the chart:</p>
+            <pre><code>helm install kafka-backup-operator kafka-backup-operator/kafka-backup-operator \
+--namespace kafka-backup-system \
+--create-namespace</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Search Charts</h2>
+            <pre><code>helm search repo kafka-backup-operator</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>⬆️ Upgrade</h2>
+            <pre><code>helm upgrade kafka-backup-operator kafka-backup-operator/kafka-backup-operator \
+--namespace kafka-backup-system</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>📚 Documentation</h2>
+            <p>
+                <span class="badge">Kubernetes 1.24+</span>
+                <span class="badge">Helm 3.0+</span>
+            </p>
+            <p style="margin-top: 1rem;">
+                For detailed documentation, visit the 
+                <a href="https://github.com/quantica-technologies/kafka-backup-operator">GitHub repository</a>.
+            </p>
+        </div>
+
+        <div class="links">
+            <a href="https://github.com/quantica-technologies/kafka-backup-operator" class="btn">
+                📖 Documentation
+            </a>
+            <a href="https://github.com/quantica-technologies/kafka-backup-operator/releases" class="btn">
+                🏷️ Releases
+            </a>
+        </div>
+    </div>
+</body>
+</html>
