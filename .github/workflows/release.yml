@@ -160,7 +160,7 @@ jobs:
           cat > release-notes.md << 'EOF'
           ## Kafka Backup Operator ${{ steps.version.outputs.VERSION }}
 
-          ### Docker Images
+          ### 🐳 Docker Images
 
           ```bash
           # Operator
@@ -173,7 +173,23 @@ jobs:
           docker pull ghcr.io/${{ github.repository }}/kafka-backup:${{ steps.version.outputs.VERSION }}
           ```
 
-          ### Helm Chart Installation
+          ### 📦 Helm Chart Installation
+
+          #### From Helm Repository (Recommended)
+
+          ```bash
+          # Add repository
+          helm repo add kafka-backup-operator https://quantica-technologies.github.io/kafka-backup-operator
+          helm repo update
+
+          # Install
+          helm install kafka-backup-operator kafka-backup-operator/kafka-backup-operator \
+            --version ${{ steps.version.outputs.VERSION }} \
+            --namespace kafka-backup-system \
+            --create-namespace
+          ```
+
+          #### From Release Asset
 
           ```bash
           # Download the chart
@@ -185,7 +201,14 @@ jobs:
             --create-namespace
           ```
 
-          ### What's Changed
+          ### 📚 Documentation
+
+          - [Installation Guide](https://github.com/${{ github.repository }}#installation)
+          - [Helm Chart Documentation](https://quantica-technologies.github.io/kafka-backup-operator)
+          - [API Reference](https://github.com/${{ github.repository }}/tree/main/docs)
+
+          ### 🎯 What's Changed
+
           <!-- Add changelog here -->
 
           **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.version.outputs.VERSION }}...main
@@ -203,11 +226,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Publish to Helm repository (optional)
+  # Publish to GitHub Pages Helm repository
   publish-helm:
     needs: create-release
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'your-org' # Change this
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
@@ -231,10 +255,48 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Publish to Helm repository
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Copy chart to gh-pages
         run: |
-          # Add your Helm repository publish logic here
-          # Example for GitHub Pages:
-          # helm repo index ./artifacts --url https://your-org.github.io/charts
-          # Or push to ChartMuseum, Harbor, etc.
-          echo "Publish to your Helm repository"
+          mkdir -p gh-pages/charts
+          cp ./artifacts/*.tgz gh-pages/charts/
+
+      - name: Update Helm repository index
+        run: |
+          cd gh-pages
+          helm repo index charts --url https://quantica-technologies.github.io/kafka-backup-operator/charts
+          cp charts/index.yaml .
+
+      - name: Commit and push to gh-pages
+        run: |
+          cd gh-pages
+          git add .
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "Release Helm chart v${{ steps.version.outputs.VERSION }}"
+            git push origin gh-pages
+          )
+
+      - name: Summary
+        run: |
+          echo "### ✅ Helm Chart Published! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Helm Repository:** https://quantica-technologies.github.io/kafka-backup-operator" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Install Instructions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "helm repo add kafka-backup-operator https://quantica-technologies.github.io/kafka-backup-operator" >> $GITHUB_STEP_SUMMARY
+          echo "helm repo update" >> $GITHUB_STEP_SUMMARY
+          echo "helm install kafka-backup-operator kafka-backup-operator/kafka-backup-operator --version ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
