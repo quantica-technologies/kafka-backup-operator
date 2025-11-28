@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: kafka-backup-operator
+  repository: ghcr.io/quantica-technologies/kafka-backup-operator/kafka-backup
   pullPolicy: IfNotPresent
   tag: ""  # Defaults to chart appVersion
 
