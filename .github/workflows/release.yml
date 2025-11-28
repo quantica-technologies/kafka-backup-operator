@@ -265,6 +265,12 @@ jobs:
           ref: main
           path: gh-pages
 
+      - name: Configure Git for gh-pages
+        run: |
+          cd gh-pages
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
       - name: Copy chart to gh-pages
         run: |
           mkdir -p gh-pages/charts
